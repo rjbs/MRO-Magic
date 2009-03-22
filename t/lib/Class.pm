@@ -10,9 +10,7 @@ my %STATIC = (
 );
 
 my %UNIVERSAL = (
-  new  => sub {
-    bless { __class__ => $_[0] } => $_[0]->instance_class,
-  },
+  new  => sub { bless { __class__ => $_[0] } => $_[0]->instance_class, },
   name => sub { $_[0]->{name} },
   base => sub { $_[0]->{base} },
   new_subclass     => sub {
@@ -33,7 +31,7 @@ my %UNIVERSAL = (
     my $curr = $self;
     while ($curr) {
       return 1 if $curr == $super;
-      $curr = $curr->{base};
+      $curr = $curr->base;
     }
     return;
   },

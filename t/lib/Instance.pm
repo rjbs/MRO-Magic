@@ -11,10 +11,7 @@ my %STATIC = (
 
 my %UNIVERSAL = (
   class => sub { $_[0]->{__class__} }, # shout out to my homies in python
-  isa   => sub {
-    my $class = $_[0]->class;
-    return $class->derives_from($_[1]);
-  },
+  isa   => sub { return $_[0]->class->derives_from($_[1]); },
 );
 
 use metamethod sub {
@@ -33,16 +30,16 @@ use metamethod sub {
 
   while ($curr) {
     # Sadly, this has to be a hash deref until the tests pass once.
-    my $methods = $curr->{instance_methods};
+    my $methods = $curr->instance_methods;
 
     $code = $methods->{$method_name}, last
       if exists $methods->{$method_name};
-    $curr = $curr->{base};
+    $curr = $curr->base;
   }
 
   unless ($code ||= $UNIVERSAL{$method_name}) {
     my $msg = sprintf "no instance method %s on %s(%s)",
-      $method_name, ref($invocant), $invocant->{__class__}{name};
+      $method_name, ref($invocant), $invocant->{__class__}->name;
     die $msg;
   }
 
