@@ -12,12 +12,12 @@ my %STATIC = (
 my %UNIVERSAL = (
   class => sub { $_[0]->{__class__} }, # shout out to my homies in python
   isa   => sub {
-    my $class = $_[0]->{__class__};
+    my $class = $_[0]->class;
     return $class->derives_from($_[1]);
   },
 );
 
-use mmmm sub {
+use metamethod sub {
   my ($invocant, $method_name, $args) = @_;
 
   my $code;

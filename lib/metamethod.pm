@@ -1,4 +1,4 @@
-package mmmm; # make my methods meta!
+package metamethod; # make my methods meta!
 use strict;
 use warnings;
 use Variable::Magic qw/wizard cast/;
@@ -10,12 +10,13 @@ sub import {
   my $method_name;
 
   my $wiz = wizard
+      copy_key => 1,
       data  => sub { \$method_name },
       fetch => sub {
-          return if (substr $_[2], 0, 1) eq '(';
-          ${ $_[1] } = $_[2] unless $_[2] eq 'invoke_method';
-          $_[2] = 'invoke_method';
-          ();
+        return if (substr $_[2], 0, 1) eq '(';
+        ${ $_[1] } = $_[2];
+        $_[2] = 'invoke_method';
+        return;
       };
 
   no strict 'refs';

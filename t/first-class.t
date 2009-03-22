@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More 'no_plan';
 
+use lib 't/lib';
 require Class;
 require Instance;
 

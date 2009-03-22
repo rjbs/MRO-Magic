@@ -11,8 +11,7 @@ my %STATIC = (
 
 my %UNIVERSAL = (
   new  => sub {
-    # XXX: Why does this panic and memory wrap? -- rjbs, 2009-03-21
-    bless { __class__ => $_[0] } => 'Instance'; # $_[0]->instance_class
+    bless { __class__ => $_[0] } => $_[0]->instance_class,
   },
   name => sub { $_[0]->{name} },
   base => sub { $_[0]->{base} },
@@ -40,7 +39,7 @@ my %UNIVERSAL = (
   },
 );
 
-use mmmm sub {
+use metamethod sub {
   my ($invocant, $method_name, $args) = @_;
   my $curr = $invocant;
   my $code;
