@@ -23,9 +23,8 @@ sub import {
   my $metamethod = $arg->{metamethod_name} || '__metamethod__';
 
   if (reftype $code eq 'SCALAR') {
-    $code = $caller->can($$code);
     Carp::confess("can't find metamethod via name ${ $arg->{metamethod} }")
-      unless $code and reftype $code eq 'CODE';
+      unless $code = $caller->can($$code);
   }
 
   if (do { no strict 'refs'; defined *{"$caller\::$metamethod"}{CODE} }) {

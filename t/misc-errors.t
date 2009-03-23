@@ -28,3 +28,4 @@ use metamethod ();
   ok( ! $ok, "we can't provide metamethod by name if it doesn't exist");
   like($error, qr/can't find/, "... got the right error, more or less");
 }
+
