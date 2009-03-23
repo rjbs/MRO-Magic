@@ -3,8 +3,8 @@ use warnings;
 use Test::More 'no_plan';
 
 use lib 't/lib';
-require Class;
-require Instance;
+use Class;
+use Instance;
 
 my $parent_class = Class->new({
   name             => 'ParentClass',
@@ -59,3 +59,4 @@ like($@, qr/no class method/, 'there is no class "plugh" on ParentClass');
 
 ok($parent_instance->isa($parent_class), 'PI isa PC');
 ok($child_instance->isa($parent_class), 'CI isa PC');
+

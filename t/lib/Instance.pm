@@ -2,6 +2,8 @@ use strict;
 use warnings;
 package Instance;
 
+our $VERSION = '1.000';
+
 my %STATIC = (
   new => sub {
     my ($class, $arg) = @_;
@@ -14,7 +16,7 @@ my %UNIVERSAL = (
   isa   => sub { return $_[0]->class->derives_from($_[1]); },
 );
 
-use metamethod sub {
+sub invoke_method {
   my ($invocant, $method_name, $args) = @_;
 
   my $code;
@@ -26,10 +28,10 @@ use metamethod sub {
     return $code->($invocant, @$args);
   }
 
-  my $curr = $invocant->{__class__};
+  my $class = $invocant->{__class__};
+  my $curr  = $class;
 
   while ($curr) {
-    # Sadly, this has to be a hash deref until the tests pass once.
     my $methods = $curr->instance_methods;
 
     $code = $methods->{$method_name}, last
@@ -39,11 +41,15 @@ use metamethod sub {
 
   unless ($code ||= $UNIVERSAL{$method_name}) {
     my $msg = sprintf "no instance method %s on %s(%s)",
-      $method_name, ref($invocant), $invocant->{__class__}->name;
+      $method_name, ref($invocant), $class->name;
     die $msg;
   }
 
   $code->($invocant, @$args);
 };
+
+use metamethod
+  metamethod => \'invoke_method',
+  passthru   => [ qw(VERSION import unimport) ];
 
 1;

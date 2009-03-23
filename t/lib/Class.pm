@@ -2,6 +2,8 @@ use strict;
 use warnings;
 package Class;
 
+our $VERSION = '1.234';
+
 my %STATIC = (
   new => sub {
     my ($pkg, $arg) = @_;
@@ -37,7 +39,7 @@ my %UNIVERSAL = (
   },
 );
 
-use metamethod sub {
+sub invoke_method {
   my ($invocant, $method_name, $args) = @_;
   my $curr = $invocant;
   my $code;
@@ -60,5 +62,10 @@ use metamethod sub {
     unless $code ||= $UNIVERSAL{$method_name};
 
   $code->($invocant, @$args);
-};
+}
+
+use metamethod
+  metamethod => \'invoke_method',
+  passthru   => [ qw(VERSION import unimport) ];
+
 1;
