@@ -2,26 +2,32 @@ use strict;
 use warnings;
 use Test::More 'no_plan';
 
-use metamethod ();
+BEGIN {
+  package OLP; # overloads pass through
 
-TODO: {
-  local $TODO = 'figure out how the crap overloading works';
-
-  my @calls;
-  {
-    package OLP; # overloads pass through
-    metamethod->import(
-      metamethod => sub {
-        my ($self, $method, $args) = @_;
-        push @calls, $method;
-        return $method;
-      },
-      overloads  => 'metamethod',
-      passthru   => [ 'ISA' ],
-    );
-  }
-
-  my $olp = bless {} => 'OLP';
-  my $str = "$olp";
-  is($str, '(""', "we stringified to the stringification method name");
+  use metamethod 
+    passthru   => [ 'ISA' ],
+    overload   => {
+      '@{}'    => 'foo',
+      fallback => 1,
+    },
+    metamethod => sub {
+      my ($self, $method, $args) = @_;
+      warn "called: " . join(q{, }, @_) . "\n";
+      return [ $method, $args ];
+    };
 }
+
+my $olp = bless {} => 'OLP';
+
+my $control = $olp->new(1,2,3);
+is_deeply(
+  $control,
+  [ new => [ 1, 2, 3 ] ],
+  "our control call worked",
+);
+
+# my $str = "$olp";
+# is($str, '(""', "we stringified to the stringification method name");
+use Data::Dumper;
+warn Dumper([ @{ $olp } ]);
