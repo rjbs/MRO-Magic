@@ -20,12 +20,24 @@ BEGIN {
 
 my $olp = bless {} => 'OLP';
 
-my $control = $olp->new(1,2,3);
-is_deeply(
-  $control,
-  [ new => [ 1, 2, 3 ] ],
-  "our control call worked",
-);
+{
+  my $control = $olp->new(1,2,3);
+  is_deeply(
+    $control,
+    [ new => [ 1, 2, 3 ] ],
+    "our control call worked",
+  );
+}
+
+{
+  my $method = 'new';
+  my $control = $olp->$method(1,2,3);
+  is_deeply(
+    $control,
+    [ new => [ 1, 2, 3 ] ],
+    "our control call worked (var method name)",
+  );
+}
 
 # my $str = "$olp";
 # is($str, '(""', "we stringified to the stringification method name");
