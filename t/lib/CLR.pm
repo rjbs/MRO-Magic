@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-package CLR; # class-less root
+package CLR_X; # class-less root
 # Our test example will be a very, very simple classless/prototype calling
 # system. -- rjbs, 2008-05-16
 
@@ -34,7 +34,7 @@ sub new {
 my %STATIC = (new => \&new);
 
 use metamethod
-  passthru   => [ qw(import export) ],
+  passthru   => [ qw(import export DESTROY AUTOLOAD) ],
   metamethod => sub {
   my ($invocant, $method, $args) = @_;
 
@@ -54,5 +54,7 @@ use metamethod
   my $class = ref $invocant;
   die "unknown method $method called on $class object";
 };
+
+{ package CLR; use mro 'CLR_X'; }
 
 1;

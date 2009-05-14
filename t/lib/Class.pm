@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-package Class;
+package ClassX;
 
 our $VERSION = '1.234';
 
@@ -12,7 +12,7 @@ my %STATIC = (
 );
 
 my %UNIVERSAL = (
-  new  => sub { bless { __class__ => $_[0] } => $_[0]->instance_class, },
+  new  => sub { bless { __class__ => $_[0] } => $_[0]->instance_class },
   name => sub { $_[0]->{name} },
   base => sub { $_[0]->{base} },
   new_subclass     => sub {
@@ -44,6 +44,8 @@ sub invoke_method {
   my $curr = $invocant;
   my $code;
 
+  warn("> $invocant -> $method_name (@$args)") if $::extra_debugging;
+
   unless (ref $invocant) {
     die "no metaclass method $method_name on $invocant"
       unless $code = $STATIC{$method_name};
@@ -51,6 +53,7 @@ sub invoke_method {
     return $code->($invocant, @$args);
   }
 
+  warn "> seeking concrete Class method $method_name" if $::extra_debugging;
   while ($curr) {
     my $methods = $curr->{class_methods};
     $code = $methods->{$method_name}, last
@@ -58,6 +61,7 @@ sub invoke_method {
     $curr = $curr->{base};
   }
 
+  warn "> seeking universal Class method $method_name" if $::extra_debugging;
   Carp::confess("no class method $method_name on $invocant->{name}")
     unless $code ||= $UNIVERSAL{$method_name};
 
@@ -67,5 +71,7 @@ sub invoke_method {
 use metamethod
   metamethod => \'invoke_method',
   passthru   => [ qw(VERSION import unimport) ];
+
+{ package Class; use mro 'ClassX'; }
 
 1;

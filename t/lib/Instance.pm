@@ -1,6 +1,8 @@
 use strict;
 use warnings;
-package Instance;
+package InstanceX;
+
+use Scalar::Util qw(blessed);
 
 our $VERSION = '1.000';
 
@@ -51,5 +53,7 @@ sub invoke_method {
 use metamethod
   metamethod => \'invoke_method',
   passthru   => [ qw(VERSION import unimport) ];
+
+{ package Instance; use mro 'InstanceX'; }
 
 1;

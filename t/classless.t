@@ -23,6 +23,15 @@ is(
   'grandchild object answers status method, too',
 );
 
+{
+  my $method = 'status';
+  is(
+    $child_b->$method,
+    'ok?',
+    'grandchild object answers status method (as str), too',
+  );
+}
+
 $child_a->set(generation => 2);
 
 my $call;

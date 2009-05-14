@@ -3,7 +3,7 @@ use warnings;
 use Test::More 'no_plan';
 
 BEGIN {
-  package OLP; # overloads pass through
+  package OLP_X; # overloads pass through
 
   use metamethod 
     passthru   => [ 'ISA' ],
@@ -13,9 +13,13 @@ BEGIN {
     },
     metamethod => sub {
       my ($self, $method, $args) = @_;
-      warn "called: " . join(q{, }, @_) . "\n";
       return [ $method, $args ];
     };
+
+  {
+    package OLP;
+    use mro 'OLP_X';
+  }
 }
 
 my $olp = bless {} => 'OLP';
@@ -41,5 +45,5 @@ my $olp = bless {} => 'OLP';
 
 # my $str = "$olp";
 # is($str, '(""', "we stringified to the stringification method name");
-use Data::Dumper;
-warn Dumper([ @{ $olp } ]);
+# use Data::Dumper;
+# warn Dumper([ @{ $olp } ]);

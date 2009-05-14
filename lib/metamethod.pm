@@ -3,6 +3,8 @@ use 5.010; # uvar magic does not work prior to version 10
 use strict;
 use warnings;
 
+use mro;
+use MRO::Define;
 use Scalar::Util qw(reftype);
 use Variable::Magic qw/wizard cast/;
 
@@ -73,6 +75,10 @@ sub import {
     };
   }
 
+  MRO::Define::register_mro($caller, sub {
+    return [ undef, $caller ];
+  });
+
   cast %{"::$caller\::"}, $wiz;
 }
 
@@ -82,6 +88,7 @@ sub _gen_fetch_magic {
   my $metamethod = $arg->{metamethod};
   my $passthru   = $arg->{passthru};
 
+  use Data::Dumper;
   return sub {
     return if $_[2] ~~ $passthru;
 
