@@ -47,21 +47,8 @@ is($child_class->foo, 'bar', 'foo on ChildClass');
 is($parent_class->instance_class, 'Instance', 'ParentClass i_c is Instance');
 is($child_class->instance_class,  'Instance', 'ChildClass i_c is Instance');
 
-diag <<'END_WTF';
-So now we have two class objects.  We've tested that they're blessed
-references, and we've tested that their class methods (ping/ping) work as
-expected.  Next up, we want to create instances.  This is where things fall
-apart.  The thing returned by ->new is the instance class, rather than a
-reference blessed into it.  What's going on?? -- rjbs, 2009-05-13
-END_WTF
-
-$::extra_debugging = 1;
-
 my $parent_instance = $parent_class->new;
-diag ">> class: $parent_class // instance $parent_instance <<";
 is(ref $parent_instance, 'Instance', 'check ref of ParentInstance');
-
-__END__
 
 my $child_instance  = $child_class->new;
 is(ref $child_instance,  'Instance', 'check ref of ChildInstance');

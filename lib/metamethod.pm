@@ -96,6 +96,8 @@ sub _gen_fetch_magic {
 
     ${ $_[1] } = $_[2];
     $_[2] = $metamethod;
+    mro::method_changed_in('UNIVERSAL');
+
     return;
   };
 }

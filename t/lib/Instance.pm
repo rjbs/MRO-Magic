@@ -52,7 +52,7 @@ sub invoke_method {
 
 use metamethod
   metamethod => \'invoke_method',
-  passthru   => [ qw(VERSION import unimport) ];
+  passthru   => [ qw(VERSION DESTROY AUTOLOAD import unimport) ];
 
 { package Instance; use mro 'InstanceX'; }
 
