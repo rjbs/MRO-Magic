@@ -5,7 +5,7 @@ use Test::More 'no_plan';
 BEGIN {
   package OLP_X; # overloads pass through
 
-  use metamethod 
+  use MRO::Magic 
     passthru   => [ 'ISA' ],
     overload   => {
       '@{}'    => 'foo',

@@ -33,7 +33,7 @@ sub new {
 
 my %STATIC = (new => \&new);
 
-use metamethod
+use MRO::Magic
   passthru   => [ qw(import export DESTROY AUTOLOAD) ],
   metamethod => sub {
   my ($invocant, $method, $args) = @_;

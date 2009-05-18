@@ -39,7 +39,7 @@ my %UNIVERSAL = (
   },
 );
 
-use metamethod sub {
+use MRO::Magic sub {
   my ($invocant, $method_name, $args) = @_;
   my $curr = $invocant;
   my $code;

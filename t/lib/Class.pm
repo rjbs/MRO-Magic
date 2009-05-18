@@ -68,7 +68,7 @@ sub invoke_method {
   $code->($invocant, @$args);
 }
 
-use metamethod
+use MRO::Magic
   metamethod => \'invoke_method',
   passthru   => [ qw(VERSION import unimport) ];
 

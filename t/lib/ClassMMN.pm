@@ -64,7 +64,7 @@ sub invoke_method {
   $code->($invocant, @$args);
 };
 
-use metamethod 
+use MRO::Magic 
   metamethod => \'invoke_method',
   metamethod_name => '__M__';
 

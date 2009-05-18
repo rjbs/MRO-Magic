@@ -1,4 +1,4 @@
-package metamethod;
+package MRO::Magic;
 use 5.010; # uvar magic does not work prior to version 10
 use strict;
 use warnings;
