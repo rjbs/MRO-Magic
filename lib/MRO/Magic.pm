@@ -2,11 +2,77 @@ package MRO::Magic;
 use 5.010; # uvar magic does not work prior to version 10
 use strict;
 use warnings;
+# ABSTRACT: write your own method dispatcher
 
 use mro;
 use MRO::Define;
 use Scalar::Util qw(reftype);
 use Variable::Magic qw/wizard cast/;
+
+=head1 WARNING
+
+First off, at present (2009-05-25) this code requires a development version of
+perl.  It should run on perl5 v10.1, but that isn't out yet, so be patient or
+install a development perl.
+
+Secondly, the API is not guaranteed to change in massive ways.  This code is
+the result of playing around, not of careful design.
+
+Finally, using MRO::Magic anywhere will impact the performance of I<all> of
+your program.  Every time a method is called via MRO::Magic, the entire method
+resolution class for all classes is cleared.
+
+B<You have been warned!>
+
+=head1 USAGE
+
+First you write a method dispatcher.
+
+  package MRO::Classless;
+  use MRO::Magic
+    metamethod => \'invoke_method',
+    passthru   => [ qw(VERSION import unimport DESTROY) ];
+
+  sub invoke_method {
+    my ($invocant, $method_name, $args) = @_;
+
+    ...
+
+    return $rv;
+  }
+
+In a class using this dispatcher, any method not in the passthru specification
+is redirected to C<invoke_method>, which can do any kind of ridiculous thing it
+wants.
+
+Now you use the dispatcher:
+
+  package MyDOM;
+  use MRO::Classless;
+  use mro 'MRO::Classless';
+  1;
+
+...and...
+
+  use MyDOM;
+
+  my $dom = MyDOM->new(type => 'root');
+
+The C<new> call will actually result in a call to C<invoke_method> in the form:
+
+  invoke_method('MyDOM', 'new', [ type => 'root' ]);
+
+Assuming it returns an object blessed into MyDOM, then:
+
+  $dom->children;
+
+...will redispatch to:
+
+  invoke_method($dom, 'children', []);
+
+For examples of more practical use, look at the test suite.
+
+=cut
 
 sub import {
   my $self = shift;
