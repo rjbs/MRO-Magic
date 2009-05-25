@@ -43,7 +43,11 @@ First you write a method dispatcher.
 
 In a class using this dispatcher, any method not in the passthru specification
 is redirected to C<invoke_method>, which can do any kind of ridiculous thing it
-wants.
+wants.  The C<$rv> in the C<invoke_method> above is the return value of the
+method called.  In other words, invoke_method takes the place of the method
+being called, down to returning the right value.  In the future, it I<may> be
+possible to declare that your invoke_method returns coderefs to call, but at
+present that is not the case.
 
 Now you use the dispatcher:
 
@@ -162,6 +166,11 @@ sub _gen_fetch_magic {
 
     ${ $_[1] } = $_[2];
     $_[2] = $metamethod;
+
+    # Colosally evil.  Solution: colossal hack.  We should inject a faux parent
+    # and invalidate methods there.  We can't invalidate methods in the class
+    # where they're found, as you have to do a mro::method_changed_in the
+    # *parent* of the class. -- rjbs, 2009-05-25
     mro::method_changed_in('UNIVERSAL');
 
     return;
