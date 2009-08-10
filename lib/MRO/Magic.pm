@@ -103,12 +103,23 @@ sub import {
     Carp::confess("can't install metamethod as $metamethod; already defined");
   }
 
+  my $fake_pkg = "$caller\::_Fake_MRO_Magic_Package";
+  {
+    no strict 'refs';
+    Carp::confess("can't perform MRO magic on $caller; has \@ISA")
+      if @{ "$caller\::ISA" };
+
+    ${ "$fake_pkg\::VERSION" } = 0;
+    @{ "$caller\::ISA" } = ($fake_pkg);
+  }
+
   my $method_name;
 
   my $wiz = wizard
     copy_key => 1,
     data     => sub { \$method_name },
     fetch    => $self->_gen_fetch_magic({
+      parent     => $fake_pkg,
       metamethod => $metamethod,
       passthru   => $arg->{passthru},
     });
@@ -171,6 +182,8 @@ sub _gen_fetch_magic {
     # and invalidate methods there.  We can't invalidate methods in the class
     # where they're found, as you have to do a mro::method_changed_in the
     # *parent* of the class. -- rjbs, 2009-05-25
+
+    # mro::method_changed_in($arg->{parent});
     mro::method_changed_in('UNIVERSAL');
 
     return;
