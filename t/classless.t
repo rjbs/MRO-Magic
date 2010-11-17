@@ -12,21 +12,23 @@ eval { $root_a->status };
 like($@, qr/\Aunknown method status called on CLR obj/, "no status on root");
 
 is(
-  $child_a->status,
+  $child_a->status(0),
   'OK!',
   'child object answers status method',
 );
 
 is(
-  $child_b->status,
+  $child_b->status(1),
   'ok?',
   'grandchild object answers status method, too',
 );
 
+diag "...time for the failing test...";
+
 {
   my $method = 'status';
   is(
-    $child_b->$method,
+    $child_b->$method(2),
     'ok?',
     'grandchild object answers status method (as str), too',
   );

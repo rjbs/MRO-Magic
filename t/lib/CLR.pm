@@ -11,7 +11,8 @@ my $stash = MRO::Magic->new_stash({
   metamethod => sub {
     my ($invocant, $method, $args) = @_;
 
-    Carp::cluck("@_");
+    use Data::Dumper;
+    warn Dumper(\@_);
 
     my $curr = $invocant;
     while ($curr) {

@@ -137,6 +137,9 @@ sub _gen_fetch_magic {
 
   use Data::Dumper;
   return sub {
+    Carp::cluck(">>> @_");
+    warn Dumper(\@_);
+
     return if $_[2] ~~ $passthru;
 
     return if substr($_[2], 0, 1) eq '(';
