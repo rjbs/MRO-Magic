@@ -12,7 +12,7 @@ my $stash = MRO::Magic->new_stash({
     my ($invocant, $method, $args) = @_;
 
     use Data::Dumper;
-    warn Dumper(\@_);
+    warn ">> CLR magic >> " . Dumper(\@_);
 
     my $curr = $invocant;
     while ($curr) {

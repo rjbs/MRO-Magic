@@ -137,7 +137,7 @@ sub _gen_fetch_magic {
 
   use Data::Dumper;
   return sub {
-    Carp::cluck(">>> @_");
+    Carp::cluck(">> gen_fetch_magic >> @_");
     warn Dumper(\@_);
 
     return if $_[2] ~~ $passthru;

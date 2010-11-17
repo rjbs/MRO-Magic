@@ -25,6 +25,9 @@ is(
 
 diag "...time for the failing test...";
 
+use mro;
+mro::method_changed_in('UNIVERSAL');
+
 {
   my $method = 'status';
   is(
