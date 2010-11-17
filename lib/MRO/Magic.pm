@@ -4,8 +4,7 @@ use strict;
 use warnings;
 # ABSTRACT: write your own method dispatcher
 
-use mro;
-use MRO::Define;
+use Object::Anon ();
 use Scalar::Util qw(reftype);
 use Variable::Magic qw/wizard cast/;
 
@@ -78,95 +77,62 @@ For examples of more practical use, look at the test suite.
 
 =cut
 
-sub import {
-  my $self = shift;
-  my $arg;
+sub new_stash {
+  my ($self, $arg) = @_;
+
+  my $stash = Object::Anon::Stash->new;
 
   if (@_ == 1 and reftype $_[0] eq 'CODE') {
     $arg = { metamethod => $_[0] };
-  } else {
-    $arg = { @_ };
-  }
-
-  my $caller     = caller;
-  my %to_install;
-
-  my $code       = $arg->{metamethod};
-  my $metamethod = $arg->{metamethod_name} || '__metamethod__';
-
-  if (reftype $code eq 'SCALAR') {
-    Carp::confess("can't find metamethod via name ${ $arg->{metamethod} }")
-      unless $code = $caller->can($$code);
-  }
-
-  if (do { no strict 'refs'; defined *{"$caller\::$metamethod"}{CODE} }) {
-    Carp::confess("can't install metamethod as $metamethod; already defined");
-  }
-
-  my $fake_pkg = "$caller\::_Fake_MRO_Magic_Package";
-  {
-    no strict 'refs';
-    Carp::confess("can't perform MRO magic on $caller; has \@ISA")
-      if @{ "$caller\::ISA" };
-
-    ${ "$fake_pkg\::VERSION" } = 0;
-    @{ "$caller\::ISA" } = ($fake_pkg);
   }
 
   my $method_name;
 
-  my $wiz = wizard
+  my $wiz = wizard(
     copy_key => 1,
     data     => sub { \$method_name },
     fetch    => $self->_gen_fetch_magic({
-      parent     => $fake_pkg,
-      metamethod => $metamethod,
       passthru   => $arg->{passthru},
-    });
+    }),
+  );
 
-  $to_install{ $metamethod } = sub {
+  my $code = $arg->{metamethod};
+
+  $stash->add_method(dispatch_method => sub {
     my $invocant = shift;
     $code->($invocant, $method_name, \@_);
-  };
-
-  no strict 'refs';
-  for my $key (keys %to_install) {
-    *{"$caller\::$key"} = $to_install{ $key };
-  }
-
-  if ($arg->{overload}) {
-    my %copy = %{ $arg->{overload} };
-    for my $ol (keys %copy) {
-      next if $ol eq 'fallback';
-      next if ref $copy{ $ol };
-      
-      my $name = $copy{ $ol };
-      $copy{ $ol } = sub {
-        $_[0]->$name(@_[ 1 .. $#_ ]);
-      };
-    }
-
-    # We need string eval to set the caller to a variable. -- rjbs, 2009-03-26
-    # We must do this before casting magic so that overload.pm can find the
-    # right entries in the stash to muck with. -- rjbs, 2009-03-26
-    die unless eval qq{
-      package $caller;
-      use overload %copy;
-      1;
-    };
-  }
-
-  MRO::Define::register_mro($caller, sub {
-    return [ undef, $caller ];
   });
 
-  cast %{"::$caller\::"}, $wiz;
+  # if ($arg->{overload}) {
+  #   my %copy = %{ $arg->{overload} };
+  #   for my $ol (keys %copy) {
+  #     next if $ol eq 'fallback';
+  #     next if ref $copy{ $ol };
+  #     
+  #     my $name = $copy{ $ol };
+  #     $copy{ $ol } = sub {
+  #       $_[0]->$name(@_[ 1 .. $#_ ]);
+  #     };
+  #   }
+
+  #   # We need string eval to set the caller to a variable. -- rjbs, 2009-03-26
+  #   # We must do this before casting magic so that overload.pm can find the
+  #   # right entries in the stash to muck with. -- rjbs, 2009-03-26
+  #   die unless eval qq{
+  #     package $caller;
+  #     use overload %copy;
+  #     1;
+  #   };
+  # }
+
+  cast %$stash, $wiz;
+
+  return $stash;
 }
 
 sub _gen_fetch_magic {
   my ($self, $arg) = @_;
 
-  my $metamethod = $arg->{metamethod};
   my $passthru   = $arg->{passthru};
 
   use Data::Dumper;
@@ -176,15 +142,7 @@ sub _gen_fetch_magic {
     return if substr($_[2], 0, 1) eq '(';
 
     ${ $_[1] } = $_[2];
-    $_[2] = $metamethod;
-
-    # Colosally evil.  Solution: colossal hack.  We should inject a faux parent
-    # and invalidate methods there.  We can't invalidate methods in the class
-    # where they're found, as you have to do a mro::method_changed_in the
-    # *parent* of the class. -- rjbs, 2009-05-25
-
-    # mro::method_changed_in($arg->{parent});
-    mro::method_changed_in('UNIVERSAL');
+    $_[2] = 'dispatch_method';
 
     return;
   };

@@ -1,15 +1,35 @@
 use strict;
 use warnings;
-package CLR_X; # class-less root
+package CLR; # class-less root
 # Our test example will be a very, very simple classless/prototype calling
 # system. -- rjbs, 2008-05-16
+
+use MRO::Magic;
+
+my $stash = MRO::Magic->new_stash({
+  passthru   => [ qw(import export DESTROY AUTOLOAD) ],
+  metamethod => sub {
+    my ($invocant, $method, $args) = @_;
+
+    Carp::cluck("@_");
+
+    my $curr = $invocant;
+    while ($curr) {
+      return $curr->{$method}->($invocant, @$args) if exists $curr->{$method};
+      $curr = $curr->{parent};
+    }
+
+    my $class = ref $invocant;
+    die "unknown method $method called on CLR object";
+  }
+});
 
 sub new {
   my ($class, %attrs) = @_;
   my $root = {
     new => sub {
       my ($parent, %attrs) = @_;
-      bless { %attrs, parent => $parent } => $class;
+      $stash->bless({ %attrs, parent => $parent });
     },
     get => sub {
       my ($self, $attr) = @_;
@@ -28,33 +48,7 @@ sub new {
     parent => undef,
   };
 
-  bless $root => $class;
+  $stash->bless($root);
 }
-
-my %STATIC = (new => \&new);
-
-use MRO::Magic
-  passthru   => [ qw(import export DESTROY AUTOLOAD) ],
-  metamethod => sub {
-  my ($invocant, $method, $args) = @_;
-
-  unless (ref $invocant) {
-    die "no metaclass method $method on $invocant"
-      unless my $code = $STATIC{$method};
-
-    return $code->($invocant, @$args);
-  }
-
-  my $curr = $invocant;
-  while ($curr) {
-    return $curr->{$method}->($invocant, @$args) if exists $curr->{$method};
-    $curr = $curr->{parent};
-  }
-
-  my $class = ref $invocant;
-  die "unknown method $method called on $class object";
-};
-
-{ package CLR; use mro 'CLR_X'; }
 
 1;
