@@ -1,0 +1,5 @@
+Revision history for {{$dist->name}}
+
+{{$NEXT}}
+
+          repackaged to provide META data
